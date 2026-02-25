@@ -101,10 +101,10 @@
 <body>
 <div class="container">
     <h1>Edition Viewer</h1>
-    <div class="search-box">
-        <input type="text" id="characterInput" placeholder="Enter character name">
-        <button onclick="searchEditions()">Search</button>
-    </div>
+    <form class="search-box" onsubmit="event.preventDefault(); searchEditions();">
+        <input type="text" id="characterInput" class="input" placeholder="Enter character name">
+        <button type="submit">Search</button>
+    </form>
     <div id="results" class="grid"></div>
 </div>
 
@@ -188,4 +188,5 @@ function imageExists(url) {
 }
 </script>
 </body>
+
 </html>
