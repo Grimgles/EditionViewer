@@ -173,7 +173,7 @@ async function searchEditions() {
         if (highestVariant) {
             finalCards.push({
                 imageUrl: highestVariant.imageUrl,
-                label: `Edition ${edition} (Alt ${highestVariant.variant})`
+                label: `Edition ${edition}`
             });
         } else {
             const base = items.find(i => i.variant === 0);
@@ -232,4 +232,5 @@ function imageExists(url) {
 </body>
 
 </html>
+
 
