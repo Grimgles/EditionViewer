@@ -128,8 +128,9 @@ async function searchEditions() {
         checks.push(
             imageExists(imageUrl).then(exists => ({
                 exists,
-                imageUrl,
-                label: `Edition ${edition}`
+                edition,
+                variant: 0,
+                imageUrl
             }))
         );
     }
@@ -140,24 +141,65 @@ async function searchEditions() {
             checks.push(
                 imageExists(imageUrl).then(exists => ({
                     exists,
-                    imageUrl,
-                    label: `Edition ${edition} (Alt ${variant})`
+                    edition,
+                    variant,
+                    imageUrl
                 }))
             );
         }
     }
 
     const results = await Promise.all(checks);
-    const validCards = results.filter(r => r.exists);
+    const validResults = results.filter(r => r.exists);
+
+    const editionMap = {};
+
+    for (const item of validResults) {
+        if (!editionMap[item.edition]) {
+            editionMap[item.edition] = [];
+        }
+        editionMap[item.edition].push(item);
+    }
+
+    const finalCards = [];
+
+    for (const edition in editionMap) {
+        const items = editionMap[edition];
+
+        const highestVariant = items
+            .filter(i => i.variant > 0)
+            .sort((a, b) => b.variant - a.variant)[0];
+
+        if (highestVariant) {
+            finalCards.push({
+                imageUrl: highestVariant.imageUrl,
+                label: `Edition ${edition} (Alt ${highestVariant.variant})`
+            });
+        } else {
+            const base = items.find(i => i.variant === 0);
+            if (base) {
+                finalCards.push({
+                    imageUrl: base.imageUrl,
+                    label: `Edition ${edition}`
+                });
+            }
+        }
+    }
+
+    finalCards.sort((a, b) => {
+        const aNum = parseInt(a.label.match(/\d+/)[0]);
+        const bNum = parseInt(b.label.match(/\d+/)[0]);
+        return aNum - bNum;
+    });
 
     resultsDiv.innerHTML = "";
 
-    if (validCards.length === 0) {
+    if (finalCards.length === 0) {
         resultsDiv.innerHTML = `<div class="no-results">No editions found.</div>`;
         return;
     }
 
-    for (const card of validCards) {
+    for (const card of finalCards) {
         appendCard(resultsDiv, card.imageUrl, card.label);
     }
 }
@@ -190,3 +232,4 @@ function imageExists(url) {
 </body>
 
 </html>
+
