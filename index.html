@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edition Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f, #1c1c2b);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 1400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .input {
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: none;
+            width: 60%;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            border-radius: 10px;
+            border: none;
+            background: #6c5ce7;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background: #a29bfe;
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 15px;
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .edition-label {
+            margin-top: 8px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .no-results {
+            opacity: 0.7;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Edition Viewer</h1>
+    <div class="search-box">
+        <input type="text" id="characterInput" placeholder="Enter character name">
+        <button onclick="searchEditions()">Search</button>
+    </div>
+    <div id="results" class="grid"></div>
+</div>
+
+<script>
+async function searchEditions() {
+    const input = document.getElementById("characterInput").value;
+    const resultsDiv = document.getElementById("results");
+
+    if (!input.trim()) {
+        resultsDiv.innerHTML = `<div class="no-results">Please enter a character name.</div>`;
+        return;
+    }
+
+    const formattedName = input.trim().toLowerCase().replace(/\s+/g, "-");
+    resultsDiv.innerHTML = `<div class="no-results">Searching...</div>`;
+
+    const checks = [];
+
+    for (let edition = 1; edition <= 12; edition++) {
+        const imageUrl = `https://d2l56h9h5tj8ue.cloudfront.net/images/cards/${formattedName}-${edition}.jpg`;
+        checks.push(
+            imageExists(imageUrl).then(exists => ({
+                exists,
+                imageUrl,
+                label: `Edition ${edition}`
+            }))
+        );
+    }
+
+    for (let edition = 1; edition <= 12; edition++) {
+        for (let variant = 1; variant <= 10; variant++) {
+            const imageUrl = `https://d2l56h9h5tj8ue.cloudfront.net/images/cards/versioned/${formattedName}-${edition}-${variant}.jpg`;
+            checks.push(
+                imageExists(imageUrl).then(exists => ({
+                    exists,
+                    imageUrl,
+                    label: `Edition ${edition} (Alt ${variant})`
+                }))
+            );
+        }
+    }
+
+    const results = await Promise.all(checks);
+    const validCards = results.filter(r => r.exists);
+
+    resultsDiv.innerHTML = "";
+
+    if (validCards.length === 0) {
+        resultsDiv.innerHTML = `<div class="no-results">No editions found.</div>`;
+        return;
+    }
+
+    for (const card of validCards) {
+        appendCard(resultsDiv, card.imageUrl, card.label);
+    }
+}
+
+function appendCard(container, imageUrl, labelText) {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const img = document.createElement("img");
+    img.src = imageUrl;
+
+    const label = document.createElement("div");
+    label.className = "edition-label";
+    label.textContent = labelText;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    container.appendChild(card);
+}
+
+function imageExists(url) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = url;
+    });
+}
+</script>
+</body>
+</html>
