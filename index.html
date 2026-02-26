@@ -109,6 +109,20 @@
 </div>
 
 <script>
+function getQueryParam(param) {
+    const params = new URLSearchParams(window.location.search);
+    return params.get(param);
+    }
+
+window.addEventListener("DOMContentLoaded", () => {
+    const nameFromURL = getQueryParam("name");
+
+    if (nameFromURL) {
+        const input = document.getElementById("characterInput");
+        input.value = nameFromURL;
+        }
+        searchEditions();
+    })
 async function searchEditions() {
     const input = document.getElementById("characterInput").value;
     const resultsDiv = document.getElementById("results");
@@ -232,5 +246,3 @@ function imageExists(url) {
 </body>
 
 </html>
-
-
